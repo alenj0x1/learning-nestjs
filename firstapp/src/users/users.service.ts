@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class UsersService {
@@ -17,10 +17,20 @@ export class UsersService {
     },
   ];
 
-  public create() {}
+  public create(user: any) {
+    this.data.push(user);
+    return this.data;
+  }
 
   public get users() {
     return this.data;
+  }
+
+  public byId(id: number) {
+    const gt = this.data.find((usr) => usr.id == id);
+    if (!gt) throw new NotFoundException('user id is incorrect');
+
+    return gt;
   }
 
   public update() {}
