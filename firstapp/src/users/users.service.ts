@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -17,8 +19,8 @@ export class UsersService {
     },
   ];
 
-  public create(user: any) {
-    this.data.push(user);
+  public create(user: CreateUserDto) {
+    this.data.push({ ...user, id: this.data.length + 1 });
     return this.data;
   }
 
@@ -33,7 +35,13 @@ export class UsersService {
     return gt;
   }
 
-  public update() {}
+  public update(id: number, user: UpdateUserDto) {
+    const gt = this.data.find((usr) => usr.id == id);
+    if (!gt) throw new NotFoundException('user id is incorrect');
+
+    gt.name = user.name ?? gt.name;
+    return gt;
+  }
 
   public updateName() {}
 
