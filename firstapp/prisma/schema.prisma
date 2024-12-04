@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model log {
+  log_id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  message     String
+  trace       String   @default("empty")
+  exception   String?
+  stack_trace String?
+  type        Int      @default(2)
+  data_json   String   @default("{}")
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  logtype     logtype  @relation(fields: [type], references: [log_type_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model logs_intern {
+  exception        String?
+  level            String?   @db.VarChar(50)
+  machine_name     String?
+  message          String?
+  message_template String?
+  properties       Json?
+  props_test       Json?     @db.Json
+  raise_date       DateTime? @db.Timestamp(6)
+
+  @@ignore
+}
+
+model logtype {
+  log_type_id Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  show_name   String   @db.VarChar(100)
+  style_class String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+  log         log[]
+}
+
+model permission {
+  permission_id     Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(50)
+  show_name         String              @db.VarChar(50)
+  description       String              @default("without description") @db.VarChar(255)
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime            @default(now()) @db.Timestamptz(6)
+  userapppermission userapppermission[]
+}
+
+model sessiontype {
+  session_type_id Int       @id @default(autoincrement())
+  name            String    @db.VarChar(100)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime  @default(now()) @db.Timestamptz(6)
+  userapp         userapp[]
+}
+
+model tokenaccess {
+  token_access_id  Int          @id @default(autoincrement())
+  token_refresh_id Int
+  user_app_id      String       @db.Uuid
+  ip               String       @db.VarChar(255)
+  is_api_key       Boolean      @default(false)
+  value            String
+  created_at       DateTime     @default(now()) @db.Timestamptz(6)
+  expiration       DateTime     @db.Timestamptz(6)
+  tokenrefresh     tokenrefresh @relation(fields: [token_refresh_id], references: [token_refresh_id], onDelete: Cascade, onUpdate: NoAction)
+  userapp          userapp      @relation(fields: [user_app_id], references: [user_app_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tokenrefresh {
+  token_refresh_id Int           @id @default(autoincrement())
+  user_app_id      String        @db.Uuid
+  ip               String        @db.VarChar(255)
+  is_api_key       Boolean       @default(false)
+  value            String
+  created_at       DateTime      @default(now()) @db.Timestamptz(6)
+  expiration       DateTime?     @db.Timestamptz(6)
+  tokenaccess      tokenaccess[]
+  userapp          userapp       @relation(fields: [user_app_id], references: [user_app_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model userapp {
+  user_app_id       String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username          String              @db.VarChar(100)
+  email             String              @db.VarChar(255)
+  password          String              @db.VarChar(255)
+  session_type_id   Int                 @default(1)
+  session_time      Int                 @default(1)
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime            @default(now()) @db.Timestamptz(6)
+  deleted_at        DateTime?           @db.Timestamptz(6)
+  tokenaccess       tokenaccess[]
+  tokenrefresh      tokenrefresh[]
+  sessiontype       sessiontype         @relation(fields: [session_type_id], references: [session_type_id], onDelete: NoAction, onUpdate: NoAction)
+  userapppermission userapppermission[]
+}
+
+model userapppermission {
+  user_app_permission_id Int        @id @default(autoincrement())
+  user_app_id            String     @db.Uuid
+  permission_id          Int
+  given_at               DateTime   @default(now()) @db.Timestamptz(6)
+  permission             permission @relation(fields: [permission_id], references: [permission_id], onDelete: NoAction, onUpdate: NoAction)
+  userapp                userapp    @relation(fields: [user_app_id], references: [user_app_id], onDelete: NoAction, onUpdate: NoAction)
+}

@@ -1,10 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class UsersService {
   private data = [];
+
+  constructor(private prisma: PrismaService) {}
 
   public create(user: CreateUserDto) {
     this.data.push({ ...user, id: this.data.length + 1 });
