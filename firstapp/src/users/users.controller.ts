@@ -18,13 +18,18 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ValidateGreetPipe } from './pipes/validate-greet/validate-greet.pipe';
 import { AuthGuard } from './guards/auth/auth.guard';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller('users')
+@ApiTags('users')
 @UseGuards(AuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @HttpCode(201)
+  @ApiOperation({ summary: 'Create a user' })
+  @ApiResponse({ status: 201, description: 'Returns a user' })
   public create(@Body() user: CreateUserDto) {
     return this.usersService.create(user);
   }
