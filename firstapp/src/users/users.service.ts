@@ -4,20 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  private data = [
-    {
-      id: 1,
-      name: 'john',
-    },
-    {
-      id: 2,
-      name: 'john',
-    },
-    {
-      id: 3,
-      name: 'john',
-    },
-  ];
+  private data = [];
 
   public create(user: CreateUserDto) {
     this.data.push({ ...user, id: this.data.length + 1 });
